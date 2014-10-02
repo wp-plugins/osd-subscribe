@@ -45,7 +45,7 @@ Yes, as users ask us questions.
 
 == Upgrade Notice ==
 
-== A brief Feature List ==
+== A Brief Feature List ==
 
 1. Email template customization
 2. Full error and success message customization

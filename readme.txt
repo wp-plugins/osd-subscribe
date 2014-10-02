@@ -1,6 +1,6 @@
 === Plugin Name ===
 Contributors: osdwebdev
-Tags: email, subscribe, ajax
+Tags: email, subscribe, ajax, email subscription, newsletter, subscription
 Requires at least: 3.4
 Tested up to: 4.0
 Stable tag: 1.0

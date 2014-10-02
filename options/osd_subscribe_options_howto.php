@@ -35,9 +35,12 @@ class OSD_Subscribe_HowTo_Settings {
             <h2>How to use OSD Subscribe</h2>
             <h3>General Use:</h3>
             <div>
-                In order to use OSD Subscribe, either use a widget or a shortcode to place a form on a page. This form
-                must have at least one category associated to it in order for it to work correctly 
-                (see Widget Use or Shortcode Use for more information). 
+                In order to use OSD Subscribe, first make sure all of the settings are where you would like them.
+                Make sure that the Confirmation and Unsubscribe page settings are set, otherwise your users will
+                be redirected to a undesirable page.<br>
+                After all of your settings are in place, either use a widget or a shortcode to place a form on a page. 
+                This form must have at least one category associated to it in order for it to work correctly 
+                (see Widget Use or Shortcode Use for more information).
                 <br><br>
                 Categories work in an "or" fashion. If a user subscribes to a form with three categories, when a post
                 containing one of those categories is published, the subscriber will receive an email.

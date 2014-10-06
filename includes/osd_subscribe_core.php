@@ -436,7 +436,7 @@ class OSD_Subscribe {
         // Build category query
         global $wpdb;
         $categories = (!is_array($categories)) ? explode(",", $categories) : $categories;
-        $wp_categories = get_categories();
+        $wp_categories = get_categories(array("hide_empty"=>0));
         $placeholders = array();
         $run_once = false;
         $query = "INSERT INTO `$this->categories_table_name` (`subscriber_id`, `category`) VALUES";

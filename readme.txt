@@ -3,7 +3,7 @@ Contributors: osdwebdev
 Tags: email, subscribe, ajax, email subscription, newsletter, subscription
 Requires at least: 3.4
 Tested up to: 4.0
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,13 @@ Yes, as users ask us questions.
 
 == Changelog ==
 
+= 1.1 =
+* Fixed bug where older versions of PHP could not activate plugin
+* Fixed bug where empty categories were not listed in widget
+* Fixed bug where empty categories were not able to be subscribed to
+* Now displaying the category name in widget instead of slug
+* Now listing all category slugs can be found in the howto page
+
 = 1.0 =
 * Initial creation of OSD Subscribe
 
@@ -58,6 +65,7 @@ Yes, as users ask us questions.
 9. Easy to style
 10. Minimal code
 11. Fast processing
+12. Unlimited subscribers (as many as your database can hold)
 
 Link to plugin page [Wordpress plugin page](http://wordpress.org/plugins/osd-subscribe/ "Link").
 

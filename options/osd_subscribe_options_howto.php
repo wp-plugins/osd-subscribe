@@ -107,7 +107,7 @@ class OSD_Subscribe_HowTo_Settings {
                         <div class="desc">
                             A comma-separated list (no spaces) of category "slugs." All category
                             slugs can be found 
-                            <a href='<?php echo get_bloginfo('url'); ?>/wp-admin/edit-tags.php?taxonomy=category'>here</a>.
+                            <a href='<?php echo get_bloginfo('url'); ?>/wp-admin/edit-tags.php?taxonomy=category'>here</a> or below.
                             <br>
                             <strong>THERE MUST BE AT LEAST ONE CATEGORY FOR OSD SUBSCRIBE TO WORK CORRECTLY.</strong>
                             <br>
@@ -118,6 +118,15 @@ class OSD_Subscribe_HowTo_Settings {
                         </div>
                     </li>
                 </ul>
+                <br>
+                <div>
+                    <Strong>Category Slugs:</Strong>
+                    <ul>
+                    <?php foreach(get_categories(array("hide_empty"=>0)) as $category) { ?>
+                        <li><?php echo $category->slug; ?></li>
+                    <?php } ?>
+                    </ul>
+                </div>
             </div>
             <h3>Filter Use:</h3>
             <div>

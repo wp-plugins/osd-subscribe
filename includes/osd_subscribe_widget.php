@@ -51,12 +51,12 @@ class OSD_Subscribe_Widget extends WP_Widget {
             <span class="desc">You must select at least one</span><br>
             <ul class='osd-subscribe-indent'>
                 <?php
-                foreach (get_categories() as $category) {
+                foreach (get_categories(array("hide_empty"=>0)) as $category) {
                     echo "
                         <li>
                             <label>
                                 <input type='checkbox' name='".$this->get_field_name('categories')."[]' value='{$category->slug}' ".$this->get_checked($category->slug, $instance['categories'])." />
-                                {$category->slug}
+                                {$category->name}
                             </label>
                         </li>";
                 }
@@ -91,6 +91,7 @@ class OSD_Subscribe_Widget extends WP_Widget {
 
 
 // Register the widget
-add_action('widgets_init', function() {
-    register_widget('OSD_Subscribe_Widget');
-});
+function register_osd_subscribe_widget() {
+    register_widget('OSD_Subscribe_Widget');    
+}
+add_action('widgets_init', 'register_osd_subscribe_widget');

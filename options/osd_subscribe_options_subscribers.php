@@ -47,11 +47,11 @@ class OSD_Subscribe_Subscriber_Settings {
     // Add options page to WP
     public function add_menu_item() {
         add_submenu_page(
-            'osd-subscribe-options', 
-            'OSD Subscribe email subscribers', 
+            'osd-subscribe-options',
+            'OSD Subscribe email subscribers',
             'Subscribers',
             'manage_options',
-            'osd-subscribe-options/subscribers', 
+            'osd-subscribe-options/subscribers',
             array($this, 'create_page')
         ); 
     }
@@ -62,20 +62,46 @@ class OSD_Subscribe_Subscriber_Settings {
         <style>
             table { table-layout: auto !important; }
             table tr:nth-child(odd) { background-color: #f9f9f9; }
-            .osd-subscribe-remove, .go-button { border: none; text-align: center; cursor: pointer; background: #555555; border-radius: 4px; display: inline-block; padding: 3px 6px; color: white; }
-            .osd-subscribe-remove:hover, .go-button:hover { background: #777777; }
-            .osd-subscribe-message { font-size: 1.25em; }
+            .osd-subscribe-remove, .osd-button { border: none; text-align: center; cursor: pointer; background: #555555; border-radius: 4px; display: inline-block; padding: 3px 6px; color: white; text-decoration: none; }
+            .osd-subscribe-remove:hover, .osd-button:hover { background: #777777; color: white; }
+            .osd-subscribe-message:not(:empty) { padding: 10px; background: white; border-radius: 5px; border: 1px solid #ccc; margin: 1em 0; border-left: 4px solid #7ad03a; }
+            .osd-subscribe-message:not(:empty).error { border-left-color: #ca2525; }
             .paginate { font-size: 1em; margin: 1em 0; }
             .paginate > a { display: inline-block; padding: 4px 10px; background: #555555; color: white; border-radius: 3px; margin: 0 4px; text-decoration: none; }
             .paginate > a:first-child { margin-left: 0; }
             .paginate > a.current, .paginate > a:hover { background: #AAAAAA; }
             .goto-page-cont { /*margin: 10px 0px;*/ display: inline-block; margin-left: 1em; }
             .goto-page-cont > .page-input { width: 100px; }
+            .csv-cont { padding: 1em 0; }
+            .section-title { font-size: 1.25em; }
+            .osd-button.import, .osd-button.export { font-size: 12px; margin-top: 5px; }
+            body { box-sizing: border-box; }
+            .grid { margin-left: -20px; }
+            .grid:after { content: ""; clear: both; display: block; }
+            .col-1-2 { float: left; width: 33.333333%; padding-left: 20px; }
         </style>
         <div class='wrap'>
             <h2>Subscribers</h2>
             <h3>You have <?php echo $this->active_num; ?> active subscribers out of <?php echo $this->users_num; ?>.</h3>
-            <div class='osd-subscribe-message'></div>
+            <div class="osd-subscribe-message <?php if (isset($_GET['error']) && $_GET['error'] == 1) { echo "error"; } ?>"><?php if (isset($_GET["osd_subscribe_message"])) { echo base64_decode($_GET["osd_subscribe_message"]); } ?></div>
+
+            <div class='csv-cont grid'>
+                <div class='col-1-2'>
+                    <div class='section-title'>Export Subscribers To CSV: </div>
+                    <a class="osd-subscriber-export osd-button export" target="_blank" href="<?php echo get_bloginfo('url'); ?>/wp-admin/admin-post.php?action=osd_subscribe_export_subscribers">Export</a>
+                </div>
+                <div class='col-1-2'>
+                    <form method="POST" action="<?php echo get_bloginfo('url'); ?>/wp-admin/admin-post.php?action=osd_subscribe_import_subscribers" enctype="multipart/form-data">
+                        <?php $protocol = (isset($_SERVER['HTTPS'])) ? "https://" : "http://"; ?>
+                        <?php $url = rawurlencode($protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']); ?>
+                        <div class='section-title'>Import subscribers from CSV: </div>
+                        <input class='import osd-button' type='submit' value='Submit' />
+                        <input type="file" name="subscribers_csv" />
+                        <input name="origin_url" value="<?php echo $url; ?>" type='hidden' />
+                    </form>
+                </div>
+            </div>
+
             <?php $this->get_pagination($this->page, $this->pages); ?>
             <table class='wp-list-table widefat fixed subscribers'>
                 <thead>
@@ -145,7 +171,7 @@ class OSD_Subscribe_Subscriber_Settings {
             ?>
             <form class='goto-page-cont'>
                 <input class='page-input' placeholder='Go to page' name='page_num' />
-                <input class='go-button' type='submit' value='Go &raquo;' />
+                <input class='go-button osd-button' type='submit' value='Go &raquo;' />
             </form>
         </div>
         <?php
@@ -175,15 +201,17 @@ class OSD_Subscribe_Subscriber_Settings {
                     var row = jQuery(this).parents('tr');
                     var data = "action=osd_subscribe_remove_subscriber&widget=osd_subscribe&wp_nonce=<?php echo wp_create_nonce('osd_subscribe_remove_subscriber'); ?>&key="+this.getAttribute('data-key');
                     var xhr = new XMLHttpRequest();
-                    xhr.open("POST", "<?php echo WP_SITEURL; ?>/wp-admin/admin-ajax.php");
+                    xhr.open("POST", "<?php echo get_bloginfo('url'); ?>/wp-admin/admin-ajax.php");
                     xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
                     xhr.onreadystatechange = function() {
                         if (this.readyState === 4 && this.status === 200) {
                             if (this.responseText == "GOOD") {
                                 row[0].parentElement.removeChild(row[0]);
                                 message.innerHTML = "User successfully removed.";
+                                message.className = "osd-subscribe-message";
                             } else {
                                 message.innerHTML = "Sorry, there was an error.";
+                                message.className = "osd-subscribe-message error";
                             }
                         }
                     }

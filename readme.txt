@@ -3,7 +3,7 @@ Contributors: osdwebdev
 Tags: email, subscribe, ajax, email subscription, newsletter, subscription
 Requires at least: 3.4
 Tested up to: 4.0
-Stable tag: 1.1
+Stable tag: 1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,10 @@ Yes, as users ask us questions.
 5. Lightly styled OSD Subscribe in action
 
 == Changelog ==
+
+= 1.2 =
+* Added Subscriber import and export
+* General Bug Fixes
 
 = 1.1 =
 * Fixed bug where older versions of PHP could not activate plugin

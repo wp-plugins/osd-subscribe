@@ -71,6 +71,12 @@ class OSD_Subscribe_HowTo_Settings {
                 This shortcode does not require a closing tag and has several attributes that may be used with it:<br>
                 <ul>
                     <li>
+                        <strong>title</strong>
+                        <div class="desc">
+                            A basic WordPress widget title
+                        </div>
+                    </li>
+                    <li>
                         <strong>class</strong>
                         <div class="desc">
                             A CSS class placed on the form wrapper. This is useful for styling.

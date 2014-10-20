@@ -27,6 +27,10 @@ class OSD_Subscribe_Widget extends WP_Widget {
             .desc { font-style: italic; }
         </style>
         <p>
+            <label>Widget Title:</label><br>
+            <input class='widefat' placeholder="" name='<?php echo $this->get_field_name('title'); ?>' type='text' value="<?php echo $instance['title']; ?>"/>
+        </p>
+        <p>
             <label>Class:</label><br>
             <input class='widefat' placeholder="" name='<?php echo $this->get_field_name('class'); ?>' type='text' value="<?php echo $instance['class']; ?>"/>
         </p>

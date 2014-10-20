@@ -128,19 +128,32 @@ class OSD_Subscribe {
 
 
     // Return all users
-    function get_subscribers($get_active = false, $limit = false, $page = 0) {
+    function get_subscribers($get_active = false, $limit = false, $page = 0, $with_categories = false) {
         global $wpdb;
         $limit_offset = $page * $this->subscribers_return_limit;
         $where = ($get_active == true) ? " WHERE `active` = 1" : "";
         $limit = ($limit == true) ? " LIMIT {$limit_offset},{$this->subscribers_return_limit}" : "";
-
         $query = "SELECT * FROM `{$this->table_name}`{$where}{$limit}";
-        return $wpdb->get_results($query);
+        $subscribers = $wpdb->get_results($query);
+
+        // Get categories if requested
+        if ($with_categories == true) {
+            foreach ($subscribers as $subscriber) {
+                $query = $wpdb->prepare("SELECT `category` FROM `{$this->categories_table_name}` WHERE `subscriber_id` = %d", $subscriber->id);
+                $categories = $wpdb->get_results($query);
+                $subscriber->categories = array();
+                foreach ($categories as $category) {
+                    $subscriber->categories[] = $category->category;
+                }
+            }
+        }
+        return $subscribers;
     }
 
 
     // Output the form given the attributes (called by shortcode and widget)
     static function get_form_html($attrs) {
+        $title = (isset($attrs['title']) && $attrs['title'] != "") ? "<h1 class='widgettitle'>".strip_tags($attrs['title'])."</h2>" : "";
         $class = (isset($attrs['class']) && $attrs['class'] != "") ? " ".strip_tags($attrs['class']) : "";
         $placeholder = (isset($attrs['placeholder']) && $attrs['placeholder'] != "") ? $attrs['placeholder'] : "Email";
         $button_text = (isset($attrs['button_text']) && $attrs['button_text'] != "") ? $attrs['button_text'] : "Subscribe";
@@ -164,6 +177,7 @@ class OSD_Subscribe {
         
         $output = "
             <div class='widget osd-subscribe{$class}'>
+                {$title}
                 <form class='osd-subscribe-form'>
                     ".apply_filters("osd_subscribe", $filterable, $pre_content, $email_input, $message_div, $submit_input, $post_content)."
                     <input type='hidden' class='osd-subscribe-categories' name='osd-subscribe-categories' value='{$categories}' />
@@ -218,12 +232,11 @@ class OSD_Subscribe {
 
 
     // Add a subscriber
-    function add_subscriber($email, $categories = "") {
+    function add_subscriber($email, $categories = "", $importing = false) {
         global $wpdb;
         // Check if valid email
         if (!is_email($email)) {
-            $this->return_message(true, ERROR_INVALID_EMAIL, $this->options['error_invalid_email']);
-            return;
+            return $this->return_message(true, ERROR_INVALID_EMAIL, $this->options['error_invalid_email'], $importing);
         }
 
         // Check categories
@@ -231,15 +244,14 @@ class OSD_Subscribe {
 
         // If no categories return
         if (count($categories) == 0) {
-            $this->return_message(true, ERROR_NO_CATEGORIES, $this->options['error_no_categories']);
-            return;
+            return $this->return_message(true, ERROR_NO_CATEGORIES, $this->options['error_no_categories'], $importing);
         }
 
         // Check if the user already exists
         $query = $wpdb->prepare("SELECT `id`, `email`, `active`, `key` FROM `$this->table_name` WHERE `email` = %s", $email);
         $results = $wpdb->get_results($query);
 
-        // If user exists already, just resend confirm email
+        // If user exists already, just add categories and resend confirmation email
         if (count($results) > 0) {
             // Add categories to user if there are new categories
             $query = $wpdb->prepare("SELECT `category` FROM `$this->categories_table_name` WHERE `subscriber_id` = %d", $results[0]->id);
@@ -260,54 +272,60 @@ class OSD_Subscribe {
             // Insert new categories if they exist
             if (count($new_categories) > 0) {
                 if (!$this->insert_categories($results[0]->id, $new_categories)) {
-                    $this->return_message(true, ERROR_FAILED_INSERT, "Unable to add new categories to subscriber");
-                    return;
+                    return $this->return_message(true, ERROR_FAILED_INSERT, "Unable to add new categories to subscriber", $importing);
                 }
             }
 
             // If user is active and no new categories have been added, error out
             if ($results[0]->active == 1 && count($new_categories) == 0) {
-                $this->return_message(true, ERROR_EMAIL_EXISTS, $this->options['error_already_subscribed']);
-                return;
+                return $this->return_message(true, ERROR_EMAIL_EXISTS, $this->options['error_already_subscribed'], $importing);
             }
             $key = $results[0]->key;
         } else {
             // If user doesn't exist, insert into DB
             $key = substr(hash("SHA256", openssl_random_pseudo_bytes(64, $crypt_strong)), 0, 32);
-            $ip = (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
+            if ($importing == true) {
+                $ip = "Imported";
+            } else {
+                $ip = (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
+            }
+            $active = ($importing == true) ? 1 : 0;
 
             // Insert new user and return on failure
-            $query = $wpdb->prepare("INSERT INTO `$this->table_name` (`email`, `key`, `ip`) VALUES(%s, %s, %s)", $email, $key, $ip);
+            $query = $wpdb->prepare("INSERT INTO `$this->table_name` (`email`, `key`, `ip`, `active`) VALUES(%s, %s, %s, %d)", $email, $key, $ip, $active);
             $results = $wpdb->query($query);
 
             if ($results == false || $results == 0) {
-                $this->return_message(true, ERROR_FAILED_INSERT, "Unable to add subscriber");
-                return;
+                return $this->return_message(true, ERROR_FAILED_INSERT, "Unable to add subscriber", $importing);
             }
 
             // Insert categories
             if (!$this->insert_categories($wpdb->insert_id, $categories)) {
-                $this->return_message(true, ERROR_FAILED_INSERT, "Unable to insert categories");
-                return;
+                return $this->return_message(true, ERROR_FAILED_INSERT, "Unable to insert categories", $importing);
             }
         }
 
         // Get confirmation template and mail confirmation message to subscriber
-        $replaced_options = $this->replace_placeholders(
-            array(
-                "confirm_template_subject" => $this->options['confirm_template_subject'],
-                "confirm_template" => $this->options['confirm_template']), 
-            array("key" => $key));
-        
-        $mail_success = wp_mail($email, $replaced_options['confirm_template_subject'], $replaced_options['confirm_template'], $this->headers, "");
-        
-        if (!$mail_success) {
-            $this->return_message(true, ERROR_CONFIRM_MESSAGE_FAILURE, "Failed to send the confirmation message");
-            return;
+        if ($importing == false) {
+            $replaced_options = $this->replace_placeholders(
+                array(
+                    "confirm_template_subject" => $this->options['confirm_template_subject'],
+                    "confirm_template" => $this->options['confirm_template']), 
+                array("key" => $key));
+            
+            $mail_success = wp_mail($email, $replaced_options['confirm_template_subject'], $replaced_options['confirm_template'], $this->headers, "");
+            
+            if (!$mail_success) {
+                return $this->return_message(true, ERROR_CONFIRM_MESSAGE_FAILURE, "Failed to send the confirmation message");
+            }
         }
 
         // Return success
-        $this->return_message(false, SUCCESS, $this->options['confirm_message']);
+        if ($importing == true) {
+            return $this->return_message(false, SUCCESS, "Users successfully imported", $importing);            
+        } else {
+            return $this->return_message(false, SUCCESS, $this->options['confirm_message'], $importing);
+        }
     }
 
 
@@ -488,7 +506,7 @@ class OSD_Subscribe {
                     "key" => "",
                     "content" => "This is a test subscription email. This is fake content to verify that your template is set up correctly.\n<br>Links will not work correctly in this email.",
                     "title" => "Test Post Title",
-                    "link" => WP_SITEURL));
+                    "link" => get_bloginfo('url')));
             $mail_success = wp_mail($email, $replaced_options['template_subject'], $replaced_options['template'], $headers, "");
         } else if ($type == "confirm") {
             $replaced_options = $this->replace_placeholders(
@@ -505,13 +523,66 @@ class OSD_Subscribe {
     }
 
 
+    // Export Subscribers
+    function export_subscribers() {
+        // Set CSV headers
+        header("Content-type: text/csv; charset=utf-8");
+        header('Content-Disposition: attachment; filename=subscribers.csv');
+
+        // Open standard output for csv
+        $subscribers = $this->get_subscribers(false, false, 0, true);
+
+        $csv = fopen("php://output", "w");
+        fputcsv($csv, array("Email", "Category"));
+        foreach ($subscribers as $subscriber) {
+            $fields = array($subscriber->email);
+            foreach ($subscriber->categories as $category) {
+                $fields[] = $category;
+            }
+            fputcsv($csv, $fields);
+        }
+    }
+
+
+    // Export Subscribers
+    function import_subscribers($filename) {
+        // Get and clean redirect url
+        $redirect_url = rawurldecode($_POST['origin_url']);
+        $redirect_url = preg_replace("/&error=[0-1]&osd_subscribe_message=[^&]*/", "", $redirect_url);
+
+        // Get uploaded CSV
+        $csv = fopen($filename, "r");
+
+        // Get first line of headers
+        fgetcsv($csv);
+
+        // Read CSV
+        while (($subscriber = fgetcsv($csv)) !== false) {
+            $email = $subscriber[0];
+            $categories = implode(",", array_slice($subscriber, 1));
+            $result = json_decode($this->add_subscriber($email, $categories, true));
+          
+            if ($result->success == false) {
+                break;
+            }
+        }
+        $error = ($result->success == false) ? "1" : "0";
+        $redirect_url .= "&error={$error}&osd_subscribe_message=".base64_encode($result->message);
+        header("Location: {$redirect_url}");
+    }
+
+
     // Return JSON AJAX message (boolean, string)
-    function return_message($error, $code, $message) {
+    function return_message($error, $code, $message, $return_error = false) {
         $return = (object) array(
             "success"=>!$error, 
             "return_code"=>constant("OSD_Subscribe::".$code), 
             "message"=>$message);
-        echo json_encode($return);
+        if ($return_error == true) {
+            return json_encode($return);
+        } else {
+            echo json_encode($return);
+        }
     }
 
 
@@ -570,7 +641,7 @@ class OSD_Subscribe {
 
                     // Send request
                     var xhr = new XMLHttpRequest();
-                    xhr.open("POST", "<?php echo WP_SITEURL; ?>/wp-admin/admin-ajax.php");
+                    xhr.open("POST", "<?php echo get_bloginfo('url'); ?>/wp-admin/admin-ajax.php");
                     xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
                     xhr.onreadystatechange = function() {
                         if (this.readyState === 4 && this.status === 200) {

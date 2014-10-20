@@ -13,15 +13,15 @@ class OSD_Subscribe_Ajax {
 
 
     // Check verify and reject if it fails
-    function osd_subscribe_validate_ajax() {   
+    function osd_subscribe_validate_ajax() {
         if (isset($_POST['widget']) && $_POST['widget'] == "osd_subscribe") {
             if (!wp_verify_nonce($_POST['wp_nonce'], $_POST['action'])) {
                 die('Invalid AJAX Request');
                 exit;
             }
+            add_action('wp_ajax_nopriv_'.$_POST['action'], array($this, $_POST['action']));
+            add_action('wp_ajax_'.$_POST['action'], array($this, $_POST['action']));
         }
-        add_action('wp_ajax_nopriv_'.$_POST['action'], array($this, $_POST['action']));
-        add_action('wp_ajax_'.$_POST['action'], array($this, $_POST['action']));
     }
 
 

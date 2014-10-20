@@ -226,7 +226,7 @@ class OSD_Subscribe_Main_Settings {
 
                     // Send request
                     var xhr = new XMLHttpRequest();
-                    xhr.open("POST", "<?php echo WP_SITEURL; ?>/wp-admin/admin-ajax.php");
+                    xhr.open("POST", "<?php echo get_bloginfo('url'); ?>/wp-admin/admin-ajax.php");
                     xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
                     xhr.onreadystatechange = function() {
                         if (this.readyState === 4 && this.status === 200) {

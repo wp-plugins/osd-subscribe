@@ -70,6 +70,7 @@ Yes, as users ask us questions.
 10. Minimal code
 11. Fast processing
 12. Unlimited subscribers (as many as your database can hold)
+13. Subscriber exporting and importing to/from CSV
 
 Link to plugin page [Wordpress plugin page](http://wordpress.org/plugins/osd-subscribe/ "Link").
 

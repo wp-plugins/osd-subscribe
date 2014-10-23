@@ -3,7 +3,7 @@
 Plugin Name: OSD Subscribe
 Plugin URI: http://outsidesource.com
 Description: A plugin that adds a customizable and filterable email subscription widget and shortcode for posts.
-Version: 1.2
+Version: 1.2.1
 Author: OSD Web Development Team
 Author URI: http://outsidesource.com
 License: GPL2v2

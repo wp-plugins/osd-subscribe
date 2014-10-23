@@ -153,7 +153,7 @@ class OSD_Subscribe {
 
     // Output the form given the attributes (called by shortcode and widget)
     static function get_form_html($attrs) {
-        $title = (isset($attrs['title']) && $attrs['title'] != "") ? "<h1 class='widgettitle'>".strip_tags($attrs['title'])."</h2>" : "";
+        $title = (isset($attrs['title']) && $attrs['title'] != "") ? "<h2 class='widgettitle'>".strip_tags($attrs['title'])."</h2>" : "";
         $class = (isset($attrs['class']) && $attrs['class'] != "") ? " ".strip_tags($attrs['class']) : "";
         $placeholder = (isset($attrs['placeholder']) && $attrs['placeholder'] != "") ? $attrs['placeholder'] : "Email";
         $button_text = (isset($attrs['button_text']) && $attrs['button_text'] != "") ? $attrs['button_text'] : "Subscribe";

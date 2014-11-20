@@ -3,7 +3,7 @@ Contributors: osdwebdev
 Tags: email, subscribe, ajax, email subscription, newsletter, subscription
 Requires at least: 3.4
 Tested up to: 4.0
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,9 @@ Yes, as users ask us questions.
 5. Lightly styled OSD Subscribe in action
 
 == Changelog ==
+
+= 1.2.2 =
+* Editors can now view/manage the subscribers page
 
 = 1.2.1 =
 * Fixed bug with widget title

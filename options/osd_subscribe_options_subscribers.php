@@ -50,7 +50,7 @@ class OSD_Subscribe_Subscriber_Settings {
             'osd-subscribe-options',
             'OSD Subscribe email subscribers',
             'Subscribers',
-            'manage_options',
+            'publish_posts',
             'osd-subscribe-options/subscribers',
             array($this, 'create_page')
         ); 
